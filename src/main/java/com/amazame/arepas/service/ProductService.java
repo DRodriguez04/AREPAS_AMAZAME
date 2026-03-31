@@ -1,5 +1,8 @@
 package com.amazame.arepas.service;
 
+import com.amazame.arepas.dto.ProductRequest;
+import com.amazame.arepas.dto.ProductResponse;
+import com.amazame.arepas.mapper.ProductMapper;
 import com.amazame.arepas.model.Product;
 import com.amazame.arepas.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,24 +16,29 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public Product createProduct(Product product){
-        if (product.getPrice() == null || product.getPrice() <= 0){
-            throw new RuntimeException("El precio debe ser mayor a 0");
-        }
+    public ProductResponse createProduct(ProductRequest productRequest){
 
-        if (product.getName() == null || product.getName().isEmpty()){
-            throw new RuntimeException("El nombre es obligatorio");
-        }
+        Product product = ProductMapper.toEntity(productRequest);
 
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+
+        return ProductMapper.toResponse(saved);
     }
 
-    public Product getProductById(Long id){
-        return productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+    public ProductResponse getProductById(Long id){
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        return ProductMapper.toResponse(product);
     }
 
-    public List<Product> getAllProducts(){
-        return productRepository.findAll();
+    public List<ProductResponse> getAllProducts(){
+
+        return productRepository.findAll()
+                .stream()
+                .map(ProductMapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public void deleteProductById(Long id){
@@ -38,5 +46,19 @@ public class ProductService {
             throw new RuntimeException("Product not found");
         }
         productRepository.deleteById(id);
+    }
+
+    public ProductResponse updateProduct(Long id, ProductRequest updatedProductRequest){
+
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        existingProduct.setName(updatedProductRequest.getName());
+        existingProduct.setType(updatedProductRequest.getType());
+        existingProduct.setPrice(updatedProductRequest.getPrice());
+
+        Product updated = productRepository.save(existingProduct);
+
+        return ProductMapper.toResponse(updated);
     }
 }

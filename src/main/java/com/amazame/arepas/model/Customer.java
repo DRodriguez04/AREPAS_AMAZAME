@@ -9,25 +9,23 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product {
+public class Customer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank(message = "El nombre es obligatorio")
-    private String name; // Ej: arepa de maíz
+    private String name;
 
-    @NotBlank(message = "El tipo es obligatorio")
-    private String type; // Ej: unidad, paquete, bebida, queso
+    @NotBlank(message = "El teléfono es obligatorio")
+    private String phone;
 
-    @NotNull(message = "El precio es obligatorio")
-    @Positive(message = "El precio debe ser mayor a 0")
-    private Double price;
+    @NotBlank(message = "La dirección es obligatoria")
+    private String address;
 }

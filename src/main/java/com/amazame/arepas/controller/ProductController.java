@@ -1,5 +1,8 @@
 package com.amazame.arepas.controller;
 
+import com.amazame.arepas.dto.ProductRequest;
+import com.amazame.arepas.dto.ProductResponse;
+import com.amazame.arepas.mapper.ProductMapper;
 import com.amazame.arepas.model.Product;
 import com.amazame.arepas.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -7,7 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Tag(name = "Productos", description = "API para gestión de productos")
 @RestController
@@ -20,22 +25,29 @@ public class ProductController {
     // Crear producto
     @Operation(summary = "Crear un nuevo producto")
     @PostMapping
-    public Product createProduct(@RequestBody Product product) {
-        return productService.createProduct(product);
+    public ProductResponse createProduct(@Valid @RequestBody ProductRequest productRequest) {
+        return productService.createProduct(productRequest);
     }
 
     //Obtener un producto by Id
     @Operation(summary = "Obtener producto por ID")
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable Long id) {
+    public ProductResponse getProductById(@PathVariable Long id) {
         return productService.getProductById(id);
     }
 
     //Listar todos los productos
     @Operation(summary = "Listar todos los productos")
     @GetMapping
-    public List<Product> getAllProducts() {
+    public List<ProductResponse> getAllProducts() {
         return productService.getAllProducts();
+    }
+
+    //Actualizar un producto
+    @PutMapping("/{id}")
+    public ProductResponse updateProduct(@PathVariable Long id,
+                                         @Valid @RequestBody ProductRequest productRequest){
+        return productService.updateProduct(id, productRequest);
     }
 
     //Eliminar un producto

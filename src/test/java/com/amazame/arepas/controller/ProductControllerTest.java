@@ -1,5 +1,7 @@
 package com.amazame.arepas.controller;
 
+import com.amazame.arepas.dto.ProductRequest;
+import com.amazame.arepas.dto.ProductResponse;
 import com.amazame.arepas.model.Product;
 import com.amazame.arepas.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,12 +14,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,26 +39,39 @@ class ProductControllerTest {
     @Test
     void shouldCreateProduct() throws Exception {
 
-        Product product = new Product(null, "Arepa", "unidad", 5000.0);
+        ProductRequest request = new ProductRequest();
+        request.setName("Arepa");
+        request.setType("unidad");
+        request.setPrice(5000.0);
 
-        when(productService.createProduct(any(Product.class)))
-                .thenReturn(product);
+        ProductResponse response = new ProductResponse(1L, "Arepa", "unidad", 5000.0);
+
+        when(productService.createProduct(any(ProductRequest.class)))
+                .thenReturn(response);
 
         mockMvc.perform(post("/products")
                         .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(product)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Arepa"));
     }
 
     @Test
+    void shouldReturnBadRequestWhenProductIsInvalid() throws Exception {
+
+        mockMvc.perform(post("/products")
+                        .contentType("application/json")
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void shouldReturnProductById() throws Exception {
-        // Arrange
-        Product product = new Product(1L, "Arepa", "unidad", 5000.0);
+
+        ProductResponse product = new ProductResponse(1L, "Arepa", "unidad", 5000.0);
 
         when(productService.getProductById(1L)).thenReturn(product);
 
-        // Act & Assert
         mockMvc.perform(get("/products/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
@@ -66,9 +81,9 @@ class ProductControllerTest {
     @Test
     void shouldReturnAllProducts() throws Exception {
         // Arrange
-        var products = Arrays.asList(
-                new Product(1L, "Arepa", "unidad", 5000.0),
-                new Product(2L, "Jugo", "bebida", 3000.0)
+        List<ProductResponse> products = Arrays.asList(
+                new ProductResponse(1L, "Arepa", "unidad", 5000.0),
+                new ProductResponse(2L, "Jugo", "bebida", 3000.0)
         );
 
         when(productService.getAllProducts()).thenReturn(products);
@@ -77,6 +92,26 @@ class ProductControllerTest {
         mockMvc.perform(get("/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void shouldUpdateProduct() throws Exception {
+
+        ProductRequest request = new ProductRequest();
+        request.setName("Arepa con queso");
+        request.setType("unidad");
+        request.setPrice(6000.0);
+
+        ProductResponse response = new ProductResponse(1L, "Arepa con queso", "unidad", 6000.0);
+
+        when(productService.updateProduct(eq(1L), any(ProductRequest.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(put("/products/1")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Arepa con queso"));
     }
 
     @Test
