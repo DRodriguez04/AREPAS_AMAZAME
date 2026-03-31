@@ -1,4 +1,7 @@
 package com.amazame.arepas.repository;
 
-public interface ProductRepository {
+import com.amazame.arepas.model.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProductRepository extends JpaRepository<Product, Long> {
 }
