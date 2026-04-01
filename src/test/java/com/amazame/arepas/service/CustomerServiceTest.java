@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -22,9 +23,12 @@ public class CustomerServiceTest {
 
     @Test
     void shouldCreateCustomerSuccessfully() {
-        Customer customer = new Customer(null, "Daniela", "123456", "Calle 123");
+        Customer customer = new Customer();
+        customer.setName("Daniela");
+        customer.setPhone("123456");
+        customer.setAddress("Calle 123");
 
-        when(customerRepository.save(customer)).thenReturn(customer);
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
 
         Customer result = customerService.createCustomer(customer);
 

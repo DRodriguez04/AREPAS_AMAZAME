@@ -1,12 +1,21 @@
 package com.amazame.arepas.service;
 
+import com.amazame.arepas.dto.OrderDetailRequest;
+import com.amazame.arepas.dto.OrderRequest;
+import com.amazame.arepas.dto.OrderResponse;
+import com.amazame.arepas.model.Customer;
 import com.amazame.arepas.model.Order;
+import com.amazame.arepas.model.Product;
+import com.amazame.arepas.repository.CustomerRepository;
 import com.amazame.arepas.repository.OrderRepository;
+import com.amazame.arepas.repository.ProductRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,52 +31,62 @@ class OrderServiceTest {
     @InjectMocks
     private OrderService orderService;
 
+    @Mock
+    private CustomerRepository  customerRepository;
+
+    @Mock
+    private ProductRepository productRepository;
+
     @Test
     void shouldCreateOrderSuccessfully(){
-        Order order = new Order(null, 10000.0, "LOCAL", "Daniela", null, null);
 
-        when(orderRepository.save(any(Order.class))).thenReturn(order);
+        // Arrange
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setName("Daniela");
+        customer.setPhone("123");
+        customer.setAddress("Calle 1");
 
-        Order result = orderService.createOrder(order);
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Arepa");
+        product.setType("unidad");
+        product.setPrice(5000.0);
+        product.setActive(true);
+        product.setStock(10);
 
-        assertNotNull(result);
-        verify(orderRepository).save(any(Order.class));
-    }
+        OrderDetailRequest detailRequest = new OrderDetailRequest();
+        detailRequest.setProductId(1L);
+        detailRequest.setQuantity(2);
 
-    @Test
-    void shouldCalculateTotalCorrectly() {
+        OrderRequest request = new OrderRequest();
+        request.setCustomerId(1L);
+        request.setType("LOCAL");
+        request.setDetails(java.util.Arrays.asList(detailRequest));
 
-        OrderDetail d1 = new OrderDetail(null, 2, 5000.0, null, null);
-        OrderDetail d2 = new OrderDetail(null, 1, 3000.0, null, null);
-
-        Order order = new Order();
-        order.setType("LOCAL");
-        order.setDetails(java.util.Arrays.asList(d1, d2));
-
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
 
-        Order result = orderService.createOrder(order);
+        // Act
+        OrderResponse result = orderService.createOrder(request);
 
-        assertEquals(13000.0, result.getTotal(), 0.01);
+        // Assert
+        assertNotNull(result);
+        assertEquals("Daniela", result.getCustomerName());
+        assertEquals(10000.0, result.getTotal(), 0.01);
     }
 
     @Test
     void shouldThrowExceptionWhenTypeIsNull(){
-        Order order = new Order();
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.createOrder(order));
-
-        assertEquals("El tipo de pedido es obligatorio", exception.getMessage());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenAddressIsMissingForDelivery() {
-        Order order = new Order(null, 10000.0, "DOMICILIO", "Daniela", null, null);
+        OrderRequest request = new OrderRequest();
+        request.setCustomerId(1L);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderService.createOrder(order);
+            orderService.createOrder(request);
         });
 
-        assertEquals("La dirección es obligatoria para domicilios", exception.getMessage());
+        assertEquals("El tipo de pedido es obligatorio", exception.getMessage());
     }
 }

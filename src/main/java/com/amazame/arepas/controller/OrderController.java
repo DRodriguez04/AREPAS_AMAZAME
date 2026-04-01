@@ -1,10 +1,14 @@
 package com.amazame.arepas.controller;
 
-import com.amazame.arepas.model.Order;
+import com.amazame.arepas.dto.OrderRequest;
+import com.amazame.arepas.dto.OrderResponse;
+import com.amazame.arepas.dto.OrderStatusRequest;
 import com.amazame.arepas.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -14,17 +18,29 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    @Operation(summary = "Dar de alta una orden")
     @PostMapping
-    public Order createOrder(Order order) {
-        return orderService.createOrder(order);
+    public OrderResponse createOrder(@Valid @RequestBody OrderRequest request){
+        return orderService.createOrder(request);
     }
 
+    @Operation(summary = "Obtener una orden por id")
     @GetMapping("/{id}")
-    public Order getOrderById(@PathVariable Long id) {
+    public OrderResponse getOrderById(@PathVariable Long id) {
         return orderService.getOrderById(id);
     }
 
-    public List<Order> getAllOrders(){
+    @Operation(summary = "Listar todas las órdenes")
+    @GetMapping
+    public List<OrderResponse> getAllOrders(){
         return orderService.getAllOrders();
+    }
+
+    @PatchMapping("/{id}/status")
+    public OrderResponse updateOrderStatus(
+            @PathVariable Long id,
+            @RequestBody @Valid OrderStatusRequest request){
+
+        return orderService.updateOrderStatus(id, request.getStatus());
     }
 }

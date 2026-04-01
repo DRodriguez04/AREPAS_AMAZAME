@@ -33,7 +33,13 @@ class ProductServiceTest {
         request.setType("unidad");
         request.setPrice(5000.0);
 
-        Product saved = new Product(1L, "Arepa", "unidad", 5000.0);
+        Product saved = new Product();
+        saved.setId(1L);
+        saved.setName("Arepa");
+        saved.setType("unidad");
+        saved.setPrice(5000.0);
+        saved.setActive(true);
+        saved.setStock(10);
 
         when(productRepository.save(any(Product.class))).thenReturn(saved);
 
@@ -47,7 +53,13 @@ class ProductServiceTest {
     @Test
     void shouldReturnProductWhenIdExists(){
 
-        Product product = new Product(1L, "Arepa", "unidad", 5000.0);
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Arepa");
+        product.setType("unidad");
+        product.setPrice(5000.0);
+        product.setActive(true);
+        product.setStock(10);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
@@ -79,10 +91,23 @@ class ProductServiceTest {
     @Test
     void shouldReturnAllProducts() {
 
-        List<Product> products = Arrays.asList(
-                new Product(1L, "Arepa", "unidad", 5000.0),
-                new Product(2L, "Jugo", "bebida", 3000.0)
-        );
+        Product p1 = new Product();
+        p1.setId(1L);
+        p1.setName("Arepa");
+        p1.setType("unidad");
+        p1.setPrice(5000.0);
+        p1.setActive(true);
+        p1.setStock(10);
+
+        Product p2 = new Product();
+        p2.setId(2L);
+        p2.setName("Jugo");
+        p2.setType("bebida");
+        p2.setPrice(3000.0);
+        p2.setActive(true);
+        p2.setStock(10);
+
+        List<Product> products = Arrays.asList(p1, p2);
 
         when(productRepository.findAll()).thenReturn(products);
 
@@ -128,7 +153,13 @@ class ProductServiceTest {
     @Test
     void shouldUpdateProductSuccessfully(){
 
-        Product existing = new Product(1L, "Arepa", "unidad", 5000.0);
+        Product existing = new Product();
+        existing.setId(1L);
+        existing.setName("Arepa");
+        existing.setType("unidad");
+        existing.setPrice(5000.0);
+        existing.setActive(true);
+        existing.setStock(10);
 
         ProductRequest request = new ProductRequest();
         request.setName("Arepa con queso");
@@ -136,7 +167,8 @@ class ProductServiceTest {
         request.setPrice(6000.0);
 
         when(productRepository.findById(1L)).thenReturn(java.util.Optional.of(existing));
-        when(productRepository.save(any(Product.class))).thenReturn(existing);
+        when(productRepository.save(any(Product.class)))
+                .thenAnswer(i -> i.getArgument(0));
 
         ProductResponse result = productService.updateProduct(1L, request);
 

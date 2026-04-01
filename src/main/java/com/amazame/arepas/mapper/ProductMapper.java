@@ -7,12 +7,18 @@ import com.amazame.arepas.model.Product;
 public class ProductMapper {
 
     public static Product toEntity(ProductRequest productRequest) {
-        return new Product(
-                null,
-                productRequest.getName(),
-                productRequest.getType(),
-                productRequest.getPrice()
-        );
+
+        Product product = new Product();
+
+        product.setName(productRequest.getName());
+        product.setType(productRequest.getType());
+        product.setPrice(productRequest.getPrice());
+
+        // valores por defecto
+        product.setActive(true);
+        product.setStock(0);
+
+        return product;
     }
 
     public static ProductResponse toResponse(Product product) {

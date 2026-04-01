@@ -18,11 +18,15 @@ public class OrderDetail {
 
     private Integer quantity;
 
-    private Double price; // precio unitario la momento de la compra
+    private Double unitPrice; // precio unitario al momento de la compra
 
     @ManyToOne
+    @JoinColumn(name = "product_id")
     private Product product;
 
     @ManyToOne
+    @JoinColumn(name = "order_id")
     private Order order;
+
+    private Double subtotal;
 }
