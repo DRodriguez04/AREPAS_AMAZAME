@@ -5,6 +5,7 @@ import com.amazame.arepas.dto.OrderRequest;
 import com.amazame.arepas.dto.OrderResponse;
 import com.amazame.arepas.enums.OrderStatus;
 import com.amazame.arepas.exception.BadRequestException;
+import com.amazame.arepas.exception.NotFoundException;
 import com.amazame.arepas.mapper.OrderMapper;
 import com.amazame.arepas.model.Customer;
 import com.amazame.arepas.model.Order;
@@ -31,6 +32,9 @@ public class OrderService {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private OrderStatusHistoryService orderStatusHistoryService;
 
     @Transactional
     public OrderResponse createOrder(OrderRequest request){
@@ -108,17 +112,20 @@ public class OrderService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
+    @Transactional
     public OrderResponse updateOrderStatus(Long id, String newStatus){
 
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+                .orElseThrow(() -> new NotFoundException("Pedido no encontrado"));
+
+        OrderStatus previousStatus = order.getStatus();
 
         OrderStatus newStatusEnum;
 
         try {
             newStatusEnum = OrderStatus.valueOf(newStatus.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Estado inválido");
+            throw new BadRequestException("Estado inválido");
         }
 
         validateStatusTransition(order.getStatus(), newStatusEnum);
@@ -126,33 +133,17 @@ public class OrderService {
         order.setStatus(newStatusEnum);
         order.setUpdatedAt(java.time.LocalDateTime.now());
 
+        Order savedOrder = orderRepository.save(order);
+
+        orderStatusHistoryService.saveHistory(savedOrder, previousStatus, newStatusEnum);
+
         return OrderMapper.toResponse(orderRepository.save(order));
     }
 
     private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus){
 
-        if(OrderStatus.CREATED.equals(currentStatus)){
-            if(!OrderStatus.PAID.equals(newStatus) &&
-                    !OrderStatus.CANCELLED.equals(newStatus)){
-                throw new RuntimeException("Transición de estado inválida");
-            }
-            return;
+        if(!currentStatus.canTransitionTo(newStatus)){
+            throw new BadRequestException("Transición de estado inválida");
         }
-
-        if(OrderStatus.PAID.equals(currentStatus)){
-            if(!OrderStatus.PREPARING.equals(newStatus)){
-                throw new RuntimeException("Transición de estado inválida");
-            }
-            return;
-        }
-
-        if(OrderStatus.PREPARING.equals(currentStatus)){
-            if(!OrderStatus.DELIVERED.equals(newStatus)){
-                throw new RuntimeException("Transición de estado inválida");
-            }
-            return;
-        }
-
-        throw new RuntimeException("No se puede modificar el pedido en este estado");
     }
 }

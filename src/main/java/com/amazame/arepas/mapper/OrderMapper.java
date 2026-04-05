@@ -28,6 +28,7 @@ public class OrderMapper {
                 order.getType(),
                 order.getTotal(),
                 order.getDeliveryFee(),
+                order.getStatus().name(),
                 details
         );
     }

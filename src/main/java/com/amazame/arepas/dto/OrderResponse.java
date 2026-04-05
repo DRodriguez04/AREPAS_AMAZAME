@@ -21,5 +21,7 @@ public class OrderResponse {
 
     private Double deliveryFee;
 
+    private String status;
+
     private List<OrderDetailResponse> details;
 }

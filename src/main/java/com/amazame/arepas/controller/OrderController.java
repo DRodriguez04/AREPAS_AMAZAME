@@ -2,21 +2,26 @@ package com.amazame.arepas.controller;
 
 import com.amazame.arepas.dto.OrderRequest;
 import com.amazame.arepas.dto.OrderResponse;
+import com.amazame.arepas.dto.OrderStatusHistoryResponse;
 import com.amazame.arepas.dto.OrderStatusRequest;
 import com.amazame.arepas.service.OrderService;
+import com.amazame.arepas.service.OrderStatusHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderStatusHistoryService orderStatusHistoryService;
 
     @Operation(summary = "Dar de alta una orden")
     @PostMapping
@@ -42,5 +47,11 @@ public class OrderController {
             @RequestBody @Valid OrderStatusRequest request){
 
         return orderService.updateOrderStatus(id, request.getStatus());
+    }
+
+    @GetMapping("/{id}/history")
+    public List<OrderStatusHistoryResponse> getOrderHistory(@PathVariable Long id){
+        orderService.getOrderById(id); // para validar existencia de la orden
+        return orderStatusHistoryService.getHistoryByOrderId(id);
     }
 }
